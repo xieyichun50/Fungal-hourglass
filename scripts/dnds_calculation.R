@@ -71,6 +71,10 @@ if (opt$qry=="Coprinopsis_cinerea.longest-gene.cds.fa") {
   IDmatch<-read.delim("Coprinopsis_cinerea.GenematchID", header = F)
   names(IDmatch)<-c("Genes","query_id")
   dnds.result<-merge(dnds.result, IDmatch, by = "query_id", all.x =T)
+} else if (opt$qry=="Fusarium_graminearum.longest-gene.cds.fa"){
+  IDmatch<-read.delim("Fusarium_graminearum.GenematchID", header = F)
+  names(IDmatch)<-c("query_id","Genes")
+  dnds.result<-merge(dnds.result, IDmatch, by = "query_id", all.x =T)
 } else {
   dnds.result$Genes<-dnds.result$query_id
 }
