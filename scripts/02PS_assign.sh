@@ -14,8 +14,8 @@
 
 #i=Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.proteins.fa
 #s=5346
-#i=Fusarium_graminearum_PH-1_YL1.proteins.fa
-#s=229533
+#i=Fusarium_graminearum.proteins.fa
+#s=5518
 
 ## The following will try to cut down the memory usage by splitting the $i.diamond.taxon.tab into several smaller files
 ## "-l N" will split the blast output into smaller files every N lines. Change N to fit with your computer memory, -l 1000000 will use ~1Gb memory when processing each subfile in < 1min.
