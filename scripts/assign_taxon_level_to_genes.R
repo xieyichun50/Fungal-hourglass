@@ -40,7 +40,7 @@ PStable<-PStable[PStable$qseqid != "qseqid",]
 PStable$PS<-as.numeric(PStable$PS)
 if (opt$input == "Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.proteins.fa.tab.sorted.PS.txt") {
   PStable<-separate(PStable, qseqid, c("Gene","Transcript"), sep = "-")
-} else if (opt$input == "Fusarium_graminearum.proteins.fa.tab.sorted.PS.txt"){
+} else if (opt$input == "Fusarium_graminearum.protein.fa.tab.sorted.PS.txt"){
   IDmatch<-read.delim("Fusarium_graminearum.GenematchID", header = F)
   names(IDmatch)<-c("qseqid","Gene")
   PStable<-merge(dnds.result, IDmatch, by = "qseqid", all.x =T)
