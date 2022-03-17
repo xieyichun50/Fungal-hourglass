@@ -21,7 +21,7 @@
 
 #i=Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.proteins.fa
 #s=5346
-#i=Fusarium_graminearum_PH-1_YL1.proteins.fa
+#i=Fusarium_graminearum.proteins.fa
 #s=229533
 
 ## In diamond, -k0 will blast against all available taxon
