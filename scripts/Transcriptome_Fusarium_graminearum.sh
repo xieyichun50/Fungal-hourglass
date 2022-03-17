@@ -26,4 +26,4 @@ prepDE.py -i ballgown/ -l 50
 
 sed -i 's/,/\t/g;s/_ballgown//g' gene_count_matrix.csv transcript_count_matrix.csv
 
-Rscript /home/yichun/RNAmodification/edgeR_TMM_norm.R
+Rscript edgeR_TMM_norm.R
