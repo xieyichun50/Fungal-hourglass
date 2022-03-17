@@ -38,7 +38,16 @@ PStable<-read.delim(opt$input, header = F)
 names(PStable)<-c("qseqid","PS")
 PStable<-PStable[PStable$qseqid != "qseqid",]
 PStable$PS<-as.numeric(PStable$PS)
-PStable<-separate(PStable, qseqid, c("Gene","Transcript"), sep = "-")
+if (opt$input == "Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.proteins.fa.tab.sorted.PS.txt") {
+  PStable<-separate(PStable, qseqid, c("Gene","Transcript"), sep = "-")
+} else if (opt$input == "Fusarium_graminearum.proteins.fa.tab.sorted.PS.txt"){
+  IDmatch<-read.delim("Fusarium_graminearum.GenematchID", header = F)
+  names(IDmatch)<-c("qseqid","Gene")
+  PStable<-merge(dnds.result, IDmatch, by = "qseqid", all.x =T)
+} else {
+  PStable<-separate(PStable, qseqid, c("Gene","Transcript"), sep = "-")
+}
+
 PStable<-PStable %>% group_by(Gene) %>% summarise(PS=min(PS))
 cat(nrow(PStable))
 
