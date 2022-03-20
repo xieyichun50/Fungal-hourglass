@@ -17,3 +17,13 @@ echo "/store/jelly/yichun/ccin/dnds_calculation.R -q Fusarium_graminearum.longes
 Rscript /store/jelly/yichun/ccin/dnds_calculation.R -q Fusarium_graminearum.longest-gene.cds.fa -r $i -b /home/yichun/miniconda3/envs/orthofinder/bin/blastp -m /home/yichun/miniconda3/envs/orthofinder/bin/mafft
 
 done
+
+## Neurospora_crassa
+ls | grep ".longest-gene.cds.fa" | grep -v "Neurospora_crassa.longest-gene.cds.fa" | while read i;
+do
+
+echo "/store/jelly/yichun/ccin/dnds_calculation.R -q Neurospora_crassa.longest-gene.cds.fa -r $i -b /home/yichun/miniconda3/envs/orthofinder/bin/blastp -m /home/yichun/miniconda3/envs/orthofinder/bin/mafft"
+
+Rscript /store/jelly/yichun/ccin/dnds_calculation.R -q Neurospora_crassa.longest-gene.cds.fa -r $i -b /home/yichun/miniconda3/envs/orthofinder/bin/blastp -m /home/yichun/miniconda3/envs/orthofinder/bin/mafft
+
+done
