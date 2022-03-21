@@ -12,6 +12,7 @@ export LD_LIBRARY_PATH=/PARA/pp585/Yichun/lib:$LD_LIBRARY_PATH
 
 cat /PARA/pp585/Yichun/filelist_RNA | while read i;
 do
+/PARA/pp585/Yichun/tools/fastp -i /PARA/pp585/Yichun/fastq/$i.r1.fq -I /PARA/pp585/Yichun/fastq/$i.r2.fq -o /PARA/pp585/Yichun/fastp/$i.r1.fastp.fq -O /PARA/pp585/Yichun/fastp/$i.r2.fastp.fq -W 4 -M 20 -l 15 -j /PARA/pp585/Yichun/fastp/$i.fastp.json -h /PARA/pp585/Yichun/fastp/$i.fastp.html -R "$i.fastp_report" -w 16
 echo "hisat2 -x /PARA/pp585/Yichun/genome/Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.scaffolds.fa -1 /PARA/pp585/Yichun/fastp/$i.r1.fastp.fq -2 /PARA/pp585/Yichun/fastp/$i.r2.fastp.fq -S /PARA/pp585/Yichun/bam/$i.sam --phred33 --dta-cufflinks --novel-splicesite-outfile /PARA/pp585/Yichun/bam/splice/$i.splicesite.txt  -p 24"
 hisat2 -x /PARA/pp585/Yichun/genome/Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.scaffolds.fa -1 /PARA/pp585/Yichun/fastp/$i.r1.fastp.fq -2 /PARA/pp585/Yichun/fastp/$i.r2.fastp.fq -S /PARA/pp585/Yichun/bam/$i.sam --phred33 --dta-cufflinks --novel-splicesite-outfile /PARA/pp585/Yichun/bam/splice/$i.splicesite.txt  -p 24
 
