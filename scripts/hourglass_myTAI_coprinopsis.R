@@ -522,7 +522,7 @@ for (k in 1:length(pairspecies)) {
   TXI.result.sub$std.dev<-FlatLineTest.result$std.dev
   TXI.result.list<-rbind(TXI.result.list, TXI.result.sub)
 
-  scale.bar<-c(floor(min(TXI.result.sub$TXI.result+TXI.result.sub$std.dev)/0.001-0.5)*0.001,
+  scale.bar<-c(floor(min(TXI.result.sub$TXI.result-TXI.result.sub$std.dev)/0.001-0.5)*0.001,
                ceiling(max(TXI.result.sub$TXI.result+TXI.result.sub$std.dev)/0.001+0.5)*0.001)
 
   TDI<-TXI.result.sub %>%
@@ -726,7 +726,7 @@ for (k in 1:length(pairspecies)) {
   TXI.result.sub$p.value<-FlatLineTest.result$p.value
   TXI.result.sub$std.dev<-FlatLineTest.result$std.dev
   TXI.result.list<-rbind(TXI.result.list, TXI.result.sub)
-  scale.bar<-c(floor(min(TXI.result.sub$TXI.result+TXI.result.sub$std.dev)/0.001-0.5)*0.001,
+  scale.bar<-c(floor(min(TXI.result.sub$TXI.result-TXI.result.sub$std.dev)/0.001-0.5)*0.001,
                ceiling(max(TXI.result.sub$TXI.result+TXI.result.sub$std.dev)/0.001+0.5)*0.001)
 
   TDI<-TXI.result.sub %>%
