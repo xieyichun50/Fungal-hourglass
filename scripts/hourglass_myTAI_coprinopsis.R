@@ -83,7 +83,7 @@ p
 
 f=paste0("Coprinopsis_cinerea.PS.tree.pptx")
 topptx(p, f, width = 5.8, height = 5, units = "in")
-rm(TXI.result.sub)
+rm(basetree,node.order,nt.order,p,PS.tree, tip.order,taxoname)
 
 ##TAI analysis
 genes.hour<-genes.PS
