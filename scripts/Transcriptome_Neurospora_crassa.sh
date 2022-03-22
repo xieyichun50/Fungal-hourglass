@@ -23,7 +23,7 @@ done
 cat samples_n_reads_decribed.txt | while read id1 id2 SRR ;
 do
 /tools/fastp -i $SRR.fastq -o $id2.fastp.fastq -W 4 -M 20 -l 15 -j $id2.fastp.json -h $id2.fastp.html -R "$id2.fastp_report" -w 38
-hisat2 -x /store/jelly/yichun/ccin/fgra/genome/Fusarium_graminearum.genomic.fa -U $id2.fastp.fastq -S $id2.sam --phred33 --dta-cufflinks --novel-splicesite-outfile $id2.splicesite.txt  -p 38
+hisat2 -x /store/jelly/yichun/ccin/ncra/genome/Neurospora_crassa.genomic.fa -U $id2.fastp.fastq -S $id2.sam --phred33 --dta-cufflinks --novel-splicesite-outfile $id2.splicesite.txt  -p 38
 samtools view --threads 38 -b -S $id2.sam > $id2.bam
 samtools sort --threads 38 $id2.bam -o $id2.sorted.bam
 samtools index $id2.sorted.bam
