@@ -12,6 +12,7 @@ samtools sort --threads 38 $id2.bam -o $id2.sorted.bam
 samtools index $id2.sorted.bam
 #java -Xmx40g -jar /tools/gatk/picard.jar MarkDuplicates INPUT=$id.sorted.bam OUTPUT=$id.sorted.redu.bam METRICS_FILE=$id.sorted.redu.metrics.txt REMOVE_DUPLICATES=true ASSUME_SORTED=true
 #samtools index $id.sorted.redu.bam
+done
 
 ####Expression level
 gff=/store/jelly/yichun/ccin/fgra/genome/Fusarium_graminearum.genomic.gff
