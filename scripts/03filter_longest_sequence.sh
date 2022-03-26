@@ -13,7 +13,7 @@
 #JAAGWA010000001.1       Genbank CDS     4125116 4125186 0       +       0       gene_id "KAG2024141.1";
 
 ##For NCBI genband direct download file
-perl gff2gtf.pl $i.genomic.gff | grep -w CDS | sed 's/_id ".*"://' | sed 's/transcript_id/\t/' | cut -f1,2,3,4,5,6,7,8,9  > $i.genomic.gff.CDS
+perl gff2gtf.pl $i.genomic.gff | grep -w CDS | sed 's/_id ".*"://' | sed 's/transcript_id/\t/' | cut -f1,2,3,4,5,6,7,8,9 | grep -v "\"\"" > $i.genomic.gff.CDS
 sed 's/lcl.*protein_id=//' $i.cds.fa | sed 's/]/\t/' | cut -f1 > $i.cds-simple.fa
 ##For JGI  Filtered Models ("best"). *_GeneCatalog_genes_*.gff
 cat $i.genomic.gff | grep -w "CDS" | sed 's/name "/ gene_id "/;s/;/\t/' | cut -f1,2,3,4,5,6,7,8,9 > $i.genomic.gff.CDS
