@@ -57,7 +57,7 @@ sed -i 's/,/\t/g;s/_ballgown//g' gene_count_matrix.csv transcript_count_matrix.c
 Rscript /home/yichun/RNAmodification/edgeR_TMM_norm.R
 
 cd ${dir};
-/home/yichun/tools/trinityrnaseq/Analysis/DifferentialExpression/run_DE_analysis.pl --matrix gene_count_matrix.csv --method edgeR --samples_file samples_n_reads_decribed.txt --output edgeR_gene.min_reps2.min_cpm1 --min_reps_min_cpm 2,1
+/home/yichun/tools/trinityrnaseq/Analysis/DifferentialExpression/run_DE_analysis.pl --matrix gene_count_matrix.csv --method edgeR --samples_file samples_n_reads_decribed.txt --output edgeR_gene.min_reps2.min_cpm1 --min_reps_min_cpm 2,1 --contrasts sample_pair.txt
 cd ${dir}/edgeR_gene.min_reps2.min_cpm1;
 /home/yichun/tools/trinityrnaseq/Analysis/DifferentialExpression/analyze_diff_expr.pl --matrix ../gene_count_matrix.csv -P 0.05 -C 1 --samples ../samples_n_reads_decribed.txt
 
