@@ -461,6 +461,45 @@ row.names(MeanREClassValues)<-c(paste0("PS",1:12),"PS1-2","PS3-12","Ratio","stde
 write.table(MeanREClassValues, paste0("Coprinopsis_cinerea.PS.RE.",ref,".txt"),
             row.names = T, quote = F, sep ="\t")
 
+##Expressed genes
+genecount<-as.data.frame(matrix(NA, nrow = 0, ncol = 3))
+for (i in 3:ncol(TMM.matrix.new)){
+  genecount.sub<-as.data.frame(xtabs(~PS, TMM.matrix.new[is.na(TMM.matrix.new[i])==F,c(1,i)]))
+  genecount.sub$Stage<-names(TMM.matrix.new)[i]
+  genecount<-rbind(genecount,genecount.sub)
+}
+genecount$PS<-paste0("PS",genecount$PS)
+p<-genecount %>%
+  mutate(Stage = factor(Stage, levels = treat.order),
+         PS = factor(PS, levels = paste0("PS", 1:12))) %>%
+  ggplot(aes(x = Stage, y = Freq, group = PS))+
+  geom_line(aes(color = PS))+
+  scale_y_continuous(#limits = c(0,1.1),
+                     #breaks = seq(0,1,0.2),
+                     position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_color_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                               "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                               "#cab2d6", "#6a3d9a", "gray75", "#b15928"))+
+  labs(title = "", x = "", y = "Gene count", colour = NULL)+
+  scale_y_break(c(2000, 4500))+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black"),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".genecount.line.png"), 
+       width = 5, height = 3, units = "in", dpi = 300)
+                  
 ##contribution
 percentTAI<-as.data.frame(pStrata(TMM.matrix.new[,c("PS","Genes",treat.order)]))
 row.names(percentTAI)<-paste0("PS", 1:12)
