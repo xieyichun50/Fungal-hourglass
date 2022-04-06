@@ -206,7 +206,7 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".",treat,".KOG.RE.ONTOLOGY.line.png"), 
        width = 6, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".",treat,".KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 6, height = 2.5, units = "in")
