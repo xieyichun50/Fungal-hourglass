@@ -58,7 +58,7 @@ cat samples_n_reads_decribed.txt | while read id1 id2 SRR;
 do  
 stringtie -e -B -p 38 -G $gff -A ${id2}_gene_count.xls -o ballgown/${id2}_ballgown/$id2.gtf $id2.sorted.bam
 done
-perl /home/yichun/RNAmodification/stringte_gene_count_matrix.pl *_gene_count.xls
+perl /home/yichun/RNAmodification/stringtie_gene_count_matrix.pl *_gene_count.xls
 prepDE.py -i sexW/ -l 36
 
 ## Vegetative JGI 2016
@@ -77,7 +77,7 @@ cat samples_n_reads_decribed.txt | while read id1 id2 SRR;
 do  
 stringtie -e -B -p 38 -G $gff -A ${id2}_gene_count.xls -o ballgown/${id2}_ballgown/$id2.gtf $id2.sorted.bam
 done
-perl /home/yichun/RNAmodification/stringte_gene_count_matrix.pl *_gene_count.xls
+perl /home/yichun/RNAmodification/stringtie_gene_count_matrix.pl *_gene_count.xls
 prepDE.py -i veg/ -l 100
 
 #In R
