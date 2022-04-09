@@ -47,7 +47,7 @@ do
 	stringtie -e -B -p 14 -G $gff -A ${id2}_gene_count.xls -o ballgown/${id2}_ballgown/$id2.gtf /home/yichun/RNAmodification/redubam/$id2.sorted.redu.bam
 	#rm $id2.sam $id2.bam
 done
-perl /home/yichun/RNAmodification/stringte_gene_count_matrix.pl *_gene_count.xls
+perl /home/yichun/RNAmodification/stringtie_gene_count_matrix.pl *_gene_count.xls
 
 prepDE.py -i ballgown/ -l 150
 sed -i 's/,/\t/g;s/_ballgown//g' gene_count_matrix.csv transcript_count_matrix.csv
@@ -66,5 +66,5 @@ do
 	cp $i .;
 done
 
-perl /home/yichun/RNAmodification/stringte_gtf_transcript_count_matrix.pl $( cut -f 2 samples_n_reads_decribed.txt | while read i; do echo -ne "$i.gtf ";done)
+perl /home/yichun/RNAmodification/stringtie_gtf_transcript_count_matrix.pl $( cut -f 2 samples_n_reads_decribed.txt | while read i; do echo -ne "$i.gtf ";done)
 sed -i 's/.gtf//g' transcript_count_matrix.*
