@@ -16,8 +16,8 @@
 #rm -rf *.dmp
 #unzip taxdmp.zip
 #mv nr.dmnd nr.dmnd.$$
-#diamond makedb --in nr.gz -d nr --taxonmap prot.accession2taxid.gz --taxonnodes nodes.dmp
-#diamond makedb --in swissprot.gz -d swissprot --taxonmap
+#diamond makedb --in nr.gz -d nr --taxonmap prot.accession2taxid.gz  --taxonnodes nodes.dmp --taxonnames names.dmp
+#diamond makedb --in swissprot.gz -d swissprot --taxonmap prot.accession2taxid.gz  --taxonnodes nodes.dmp --taxonnames names.dmp
 
 #i=Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.proteins.fa
 #s=5346
