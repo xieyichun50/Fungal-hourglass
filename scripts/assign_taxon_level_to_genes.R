@@ -44,6 +44,10 @@ if (opt$input == "Coprinopsis_cinerea_A43mutB43mut_pab1-1_326.proteins.fa.tab.so
   IDmatch<-read.delim("Fusarium_graminearum.GenematchID", header = F)
   names(IDmatch)<-c("qseqid","Gene")
   PStable<-merge(PStable, IDmatch, by = "qseqid", all.x =T)
+} else if (file.exists(paste0(gsub(".protein.fa.tab.sorted.PS.txt","",opt$input),".GenematchID"))){
+  IDmatch<-read.delim(paste0(gsub(".protein.fa.tab.sorted.PS.txt","",opt$input),".GenematchID"), header = F)
+  names(IDmatch)<-c("qseqid","Gene")
+  PStable<-merge(PStable, IDmatch, by = "qseqid", all.x =T)
 } else {
   PStable<-separate(PStable, qseqid, c("Gene","Transcript"), sep = "-")
 }
