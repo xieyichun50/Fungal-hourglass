@@ -83,6 +83,10 @@ if (opt$qry=="Coprinopsis_cinerea.longest-gene.cds.fa") {
   IDmatch<-read.delim("Rhizopus_delemar.GenematchID", header = F)
   names(IDmatch)<-c("query_id","Genes")
   dnds.result<-merge(dnds.result, IDmatch, by = "query_id", all.x =T)
+} else if (file.exists(paste0(opt$qry,".GenematchID"))){
+  IDmatch<-read.delim(paste0(opt$qry,".GenematchID"), header = F)
+  names(IDmatch)<-c("query_id","Gene")
+  dnds.result<-merge(dnds.result, IDmatch, by = "query_id", all.x =T)
 } else {
   dnds.result$Genes<-dnds.result$query_id
 }
