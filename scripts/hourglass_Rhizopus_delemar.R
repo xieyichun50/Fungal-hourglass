@@ -341,6 +341,47 @@ row.names(MeanREClassValues)<-c(paste0("PS",c(1:5,7,9:10)),"PS1-2","PS3-10","Rat
 write.table(MeanREClassValues, paste0(species,".PS.RE.",ref,".txt"),
             row.names = T, quote = F, sep ="\t")
 
+##Expressed genes
+genecount<-as.data.frame(matrix(NA, nrow = 0, ncol = 3))
+for (i in 3:ncol(TMM.matrix.new)){
+  genecount.sub<-as.data.frame(xtabs(~PS, TMM.matrix.new[is.na(TMM.matrix.new[i])==F,c(1,i)]))
+  genecount.sub$Stage<-names(TMM.matrix.new)[i]
+  genecount<-rbind(genecount,genecount.sub)
+}
+genecount$PS<-paste0("PS",genecount$PS)
+p<-genecount %>%
+  mutate(Stage = factor(Stage, levels = treat.order),
+         PS = factor(PS, levels = paste0("PS", 1:12))) %>%
+  ggplot(aes(x = Stage, y = Freq, group = PS))+
+  geom_line(aes(color = PS))+
+  scale_y_continuous(#limits = c(0,1.1),
+    #breaks = seq(0,1,0.2),
+    position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_color_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                                "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                                "#cab2d6", "#6a3d9a", "gray75", "#b15928"))+
+  labs(title = "", x = "", y = "Gene count", colour = NULL)+
+  scale_y_break(c(1000,1600))+
+  scale_y_break(c(1900, 5350))+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black"),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".genecount.line.png"), 
+       width = 5, height = 3, units = "in", dpi = 300)
+
+
 ##contribution
 percentTAI<-as.data.frame(pStrata(TMM.matrix.new))
 row.names(percentTAI)<-paste0("PS", c(1:5,7,9:10))
@@ -1024,3 +1065,46 @@ ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"),
        width = 5, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".EML.KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 5, height = 2.5, units = "in")
+
+##KOG by PS
+KOG.PS<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), genes.PS, by = "Genes", all.y = T)
+KOG.PS<-KOG.PS[is.na(KOG.PS$KS)==F,]
+KOG.PS.stat<-as.data.frame(xtabs( ~ PS+KS, KOG.PS))
+KOG.PS.stat<-merge(KOG.PS.stat, kog2name, by = "KS", all.x = T)
+KOG.PS.stat$PS<-paste0("PS", KOG.PS.stat$PS)
+kog2name$Description<-paste0(kog2name$kogName, "[",kog2name$kogClass,"]")
+kog2name.order<-kog2name$Description
+KOG.PS.stat$Description<-paste0(KOG.PS.stat$kogName, "[",KOG.PS.stat$kogClass,"]")
+p<-KOG.PS.stat %>%
+  mutate(PS = factor(PS, levels = paste0("PS", 1:12)),
+         Description = factor(Description, levels = kog2name.order)) %>%
+  ggplot(aes(x = Description, y = Freq, fill = PS))+
+  #geom_line(aes(color = PS))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_y_continuous(#limits = c(0,1.1),
+    #breaks = seq(0,1,0.2),
+    position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                               "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                               "#cab2d6", "#6a3d9a", "gray75", "#b15928"))+
+  labs(title = "", x = "", y = "", colour = NULL)+
+  scale_y_break(c(1000, 1600))+
+  scale_y_break(c(1800, 3400))+
+  facet_grid(~ONTOLOGY, scales = "free", space = "free")+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".KOGPS.genecount.png"), 
+       width = 12, height = 8, units = "in", dpi = 300)
