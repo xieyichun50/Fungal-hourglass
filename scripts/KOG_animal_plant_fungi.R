@@ -7,7 +7,7 @@ setwd("hourglass/enrich/")
 
 ##Drosophila
 ################################################################
-## KOG ~ all stages 
+## KOG ~ all stages
 ################################################################
 ##Read in gene expression level
 species="Drosophila_melanogaster"
@@ -20,6 +20,8 @@ names(TMM.matrix)[2]<-"Genes"
 TMM.matrix$Genes<-gsub("fbpp","FBpp",TMM.matrix$Genes)
 names(TMM.matrix)<-gsub("X","",names(TMM.matrix))
 names(TMM.matrix)<-gsub("\\.embryo","",names(TMM.matrix))
+genes.PS<-TMM.matrix[,1:2]
+names(genes.PS)<-c("PS","Genes")
 treat.order<-names(TMM.matrix)[3:ncol(TMM.matrix)]
 TMM.matrix<-TMM.matrix[,c("Genes", treat.order)]
 
@@ -39,6 +41,51 @@ GenesKOGpair.1v1<-read.delim(paste0("/home/yichun/RNAmodification/hourglass/eggn
 GenesKOGpair.1v1<-unique(GenesKOGpair.1v1[,c("KOG","Genes")])
 names(GenesKOGpair.1v1)[1]<-"kogClass"
 GenesKOGpair.1v1<-merge(GenesKOGpair.1v1, kog2name[,c("KS","kogClass")], by = "kogClass", all.x = T)
+
+##KOG by PS
+KOG.PS<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), genes.PS, by = "Genes", all.y = T)
+KOG.PS<-KOG.PS[is.na(KOG.PS$KS)==F,]
+KOG.PS.stat<-as.data.frame(xtabs( ~ PS+KS, KOG.PS))
+KOG.PS.stat<-merge(KOG.PS.stat, kog2name, by = "KS", all.x = T)
+KOG.PS.stat$PS<-paste0("PS", KOG.PS.stat$PS)
+kog2name$Description<-paste0(kog2name$kogName, "[",kog2name$kogClass,"]")
+kog2name.order<-kog2name$Description
+KOG.PS.stat$Description<-paste0(KOG.PS.stat$kogName, "[",KOG.PS.stat$kogClass,"]")
+p<-KOG.PS.stat %>%
+  mutate(PS = factor(PS, levels = paste0("PS", 1:13)),
+         Description = factor(Description, levels = kog2name.order)) %>%
+  ggplot(aes(x = Description, y = Freq, fill = PS))+
+  #geom_line(aes(color = PS))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_y_continuous(#limits = c(0,1.1),
+    #breaks = seq(0,1,0.2),
+    position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                               "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                               "#cab2d6", "#6a3d9a", "gray75", "#b15928",
+                               "black"))+
+  labs(title = "", x = "", y = "", colour = NULL)+
+  scale_y_break(c(1900, 2500))+
+  #scale_y_break(c(1500, 2200))+
+  facet_grid(~ONTOLOGY, scales = "free", space = "free")+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".KOGPS.genecount.png"),
+       width = 12, height = 8, units = "in", dpi = 300)
+
 
 TMM.matrix.new<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), TMM.matrix, by = "Genes", all.y = T)
 TMM.matrix.new<-TMM.matrix.new[is.na(TMM.matrix.new$KS)==F, c("KS","Genes",treat.order)]
@@ -77,7 +124,7 @@ pheatmap(heatmap.input,
          annotation_row = row.anno,
          annotation_col = col.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -167,15 +214,15 @@ p<-line.input %>%
                      breaks = seq(0,1,0.2),
                      position = "left")+
   scale_x_discrete(position = "bottom")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Early",
            x=mean(module.list[[1]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Mid",
            x=mean(module.list[[2]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Late",
            x=mean(module.list[[3]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
@@ -194,13 +241,13 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"),
        width = 6, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 6, height = 2.5, units = "in")
 
 ################################################################
-## KOG ~ Early-Mid-Late 
+## KOG ~ Early-Mid-Late
 ################################################################
 TMM.matrix.EML<-data.frame(Genes = TMM.matrix$Genes)
 if (length(module.list[[1]])<2) {
@@ -257,7 +304,7 @@ pheatmap(heatmap.input,
                       nrow(Relative.exp)-1),
          annotation_row = row.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -339,15 +386,15 @@ p<-line.input %>%
                      breaks = seq(0,1,0.2),
                      position = "left")+
   scale_x_discrete(position = "bottom")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Early",
            x=1, y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Mid",
            x=2, y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Late",
            x=3, y=1.1,
            colour="black", size=2, fontface = "italic")+
@@ -366,7 +413,7 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"),
        width = 5, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".EML.KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 5, height = 2.5, units = "in")
@@ -374,7 +421,7 @@ topptx(p, f, width = 5, height = 2.5, units = "in")
 
 ##Danio
 ################################################################
-## KOG ~ all stages 
+## KOG ~ all stages
 ################################################################
 ##Read in gene expression level
 species="Danio_rerio"
@@ -385,6 +432,8 @@ names(IDmatch)<-c("Protein","Gene")
 TMM.matrix<-read.delim(paste0("expression.drer.txt"),header = T)
 names(TMM.matrix)[2]<-"Genes"
 names(TMM.matrix)<-gsub("X","",names(TMM.matrix))
+genes.PS<-TMM.matrix[,1:2]
+names(genes.PS)<-c("PS","Genes")
 treat.order<-names(TMM.matrix)[3:ncol(TMM.matrix)]
 TMM.matrix<-TMM.matrix[,c("Genes", treat.order)]
 
@@ -409,6 +458,49 @@ GenesKOGpair.1v1<-merge(GenesKOGpair.1v1, IDmatch, by = "Protein", all.x = T)
 GenesKOGpair.1v1<-unique(GenesKOGpair.1v1[,c("KOG","Genes")])
 names(GenesKOGpair.1v1)[1]<-"kogClass"
 GenesKOGpair.1v1<-merge(GenesKOGpair.1v1, kog2name[,c("KS","kogClass")], by = "kogClass", all.x = T)
+
+##KOG by PS
+KOG.PS<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), genes.PS, by = "Genes", all.y = T)
+KOG.PS<-KOG.PS[is.na(KOG.PS$KS)==F,]
+KOG.PS.stat<-as.data.frame(xtabs( ~ PS+KS, KOG.PS))
+KOG.PS.stat<-merge(KOG.PS.stat, kog2name, by = "KS", all.x = T)
+KOG.PS.stat$PS<-paste0("PS", KOG.PS.stat$PS)
+kog2name$Description<-paste0(kog2name$kogName, "[",kog2name$kogClass,"]")
+kog2name.order<-kog2name$Description
+KOG.PS.stat$Description<-paste0(KOG.PS.stat$kogName, "[",KOG.PS.stat$kogClass,"]")
+p<-KOG.PS.stat %>%
+  mutate(PS = factor(PS, levels = paste0("PS", 1:12)),
+         Description = factor(Description, levels = kog2name.order)) %>%
+  ggplot(aes(x = Description, y = Freq, fill = PS))+
+  #geom_line(aes(color = PS))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_y_continuous(#limits = c(0,1.1),
+    #breaks = seq(0,1,0.2),
+    position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                               "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                               "#cab2d6", "#6a3d9a", "gray75", "#b15928"))+
+  labs(title = "", x = "", y = "", colour = NULL)+
+  scale_y_break(c(2700, 3000))+
+  scale_y_break(c(1700, 2400))+
+  facet_grid(~ONTOLOGY, scales = "free", space = "free")+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".KOGPS.genecount.png"),
+       width = 12, height = 8, units = "in", dpi = 300)
 
 TMM.matrix.new<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), TMM.matrix, by = "Genes", all.y = T)
 TMM.matrix.new<-TMM.matrix.new[is.na(TMM.matrix.new$KS)==F, c("KS","Genes",treat.order)]
@@ -447,7 +539,7 @@ pheatmap(heatmap.input,
          annotation_row = row.anno,
          annotation_col = col.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -543,15 +635,15 @@ p<-line.input %>%
                      breaks = seq(0,1,0.2),
                      position = "left")+
   scale_x_discrete(position = "bottom")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Early",
            x=mean(module.list[[1]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Mid",
            x=mean(module.list[[2]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Late",
            x=mean(module.list[[3]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
@@ -570,13 +662,13 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"),
        width = 8, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 8, height = 2.5, units = "in")
 
 ################################################################
-## KOG ~ Early-Mid-Late 
+## KOG ~ Early-Mid-Late
 ################################################################
 TMM.matrix.EML<-data.frame(Genes = TMM.matrix$Genes)
 if (length(module.list[[1]])<2) {
@@ -638,7 +730,7 @@ pheatmap(heatmap.input,
                       nrow(Relative.exp)-1),
          annotation_row = row.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -725,15 +817,15 @@ p<-line.input %>%
                      breaks = seq(0,1,0.2),
                      position = "left")+
   scale_x_discrete(position = "bottom")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Early",
            x=1, y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Mid",
            x=2, y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Late",
            x=3, y=1.1,
            colour="black", size=2, fontface = "italic")+
@@ -752,7 +844,7 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"),
        width = 5, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".EML.KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 5, height = 2.5, units = "in")
@@ -760,7 +852,7 @@ topptx(p, f, width = 5, height = 2.5, units = "in")
 
 ##Arabidopsis
 ################################################################
-## KOG ~ all stages 
+## KOG ~ all stages
 ################################################################
 ##Read in gene expression level
 species="Arabidopsis_thaliana"
@@ -774,6 +866,8 @@ TMM.matrix$Genes<-gsub("at4g","AT4G",TMM.matrix$Genes)
 TMM.matrix$Genes<-gsub("at5g","AT5G",TMM.matrix$Genes)
 TMM.matrix$Genes<-gsub("atcg","ATCG",TMM.matrix$Genes)
 TMM.matrix$Genes<-gsub("atmg","ATMG",TMM.matrix$Genes)
+genes.PS<-TMM.matrix[,1:2]
+names(genes.PS)<-c("PS","Genes")
 treat.order<-names(TMM.matrix)[3:ncol(TMM.matrix)]
 TMM.matrix<-TMM.matrix[,c("Genes", treat.order)]
 
@@ -795,6 +889,51 @@ GenesKOGpair.1v1<-separate(GenesKOGpair.1v1, Protein, c("Genes"), sep = "\\|")
 GenesKOGpair.1v1<-unique(GenesKOGpair.1v1[,c("KOG","Genes")])
 names(GenesKOGpair.1v1)[1]<-"kogClass"
 GenesKOGpair.1v1<-merge(GenesKOGpair.1v1, kog2name[,c("KS","kogClass")], by = "kogClass", all.x = T)
+
+##KOG by PS
+KOG.PS<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), genes.PS, by = "Genes", all.y = T)
+KOG.PS<-KOG.PS[is.na(KOG.PS$KS)==F,]
+KOG.PS.stat<-as.data.frame(xtabs( ~ PS+KS, KOG.PS))
+KOG.PS.stat<-merge(KOG.PS.stat, kog2name, by = "KS", all.x = T)
+KOG.PS.stat$PS<-paste0("PS", KOG.PS.stat$PS)
+kog2name$Description<-paste0(kog2name$kogName, "[",kog2name$kogClass,"]")
+kog2name.order<-kog2name$Description
+KOG.PS.stat$Description<-paste0(KOG.PS.stat$kogName, "[",KOG.PS.stat$kogClass,"]")
+p<-KOG.PS.stat %>%
+  mutate(PS = factor(PS, levels = paste0("PS", 1:12)),
+         Description = factor(Description, levels = kog2name.order)) %>%
+  ggplot(aes(x = Description, y = Freq, fill = PS))+
+  #geom_line(aes(color = PS))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_y_continuous(#limits = c(0,1.1),
+    #breaks = seq(0,1,0.2),
+    position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                               "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                               "#cab2d6", "#6a3d9a", "gray75", "#b15928"))+
+  labs(title = "", x = "", y = "", colour = NULL)+
+  scale_y_break(c(2500, 3500))+
+  scale_y_break(c(4200, 5600))+
+  scale_y_break(c(5900, 7500))+
+  facet_grid(~ONTOLOGY, scales = "free", space = "free")+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".KOGPS.genecount.png"),
+       width = 12, height = 8, units = "in", dpi = 300)
+
 
 TMM.matrix.new<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), TMM.matrix, by = "Genes", all.y = T)
 TMM.matrix.new<-TMM.matrix.new[is.na(TMM.matrix.new$KS)==F, c("KS","Genes",treat.order)]
@@ -833,7 +972,7 @@ pheatmap(heatmap.input,
          annotation_row = row.anno,
          annotation_col = col.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -926,15 +1065,15 @@ p<-line.input %>%
                      breaks = seq(0,1,0.2),
                      position = "left")+
   scale_x_discrete(position = "bottom")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Early",
            x=mean(module.list[[1]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Mid",
            x=mean(module.list[[2]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Late",
            x=mean(module.list[[3]]), y=1.1,
            colour="black", size=2, fontface = "italic")+
@@ -953,13 +1092,13 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".KOG.RE.ONTOLOGY.line.png"),
        width = 6, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 6, height = 2.5, units = "in")
 
 ################################################################
-## KOG ~ Early-Mid-Late 
+## KOG ~ Early-Mid-Late
 ################################################################
 TMM.matrix.EML<-data.frame(Genes = TMM.matrix$Genes)
 if (length(module.list[[1]])<2) {
@@ -1018,7 +1157,7 @@ pheatmap(heatmap.input,
                       nrow(Relative.exp)-1),
          annotation_row = row.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -1102,15 +1241,15 @@ p<-line.input %>%
                      breaks = seq(0,1,0.2),
                      position = "left")+
   scale_x_discrete(position = "bottom")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Early",
            x=1, y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Mid",
            x=2, y=1.1,
            colour="black", size=2, fontface = "italic")+
-  annotate(geom = "text", 
+  annotate(geom = "text",
            label="Late",
            x=3, y=1.1,
            colour="black", size=2, fontface = "italic")+
@@ -1129,7 +1268,7 @@ p<-line.input %>%
         legend.position = "right",
         strip.text = element_text(size = 9))
 p
-ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"), 
+ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"),
        width = 5, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".EML.KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 5, height = 2.5, units = "in")
@@ -1192,7 +1331,7 @@ pheatmap(heatmap.input,
          annotation_row = row.anno,
          annotation_col = col.anno,
          annotation_colors = list(ONTOLOGY = c(`Cellular processes and signaling` = "#fdbf6f",
-                                               `Information storage and processing` = "#a6cee3", 
+                                               `Information storage and processing` = "#a6cee3",
                                                `Metabolism` = "#b2df8a",
                                                `Poor` = "gray75"),
                                   ONTOGENY = c(Early = "#33a02c",
@@ -1214,7 +1353,7 @@ for (i in 1:length(specieslist)) {
   KOGtable.species<-KOG.all.list.bk
   species<-specieslist[i]
   KOGtable.sub<-read.delim(paste0(species,".EML.KOG.RE.txt"))
-  
+
   KOGtable.sub<-KOGtable.sub[,c("kogClass","Early","Mid","Late")]
   for (j in 2:ncol(KOGtable.sub)) {
     KOGtable.sub.list<-KOGtable.sub[,c(1,j)]
@@ -1256,10 +1395,10 @@ specieslist.new<-c("R._delemar",
 p<-KOG.all.list %>%
   mutate(species=factor(species, levels = c(gsub("_"," ",specieslist.new))),
          stage = factor(stage, levels = c("Early","Mid","Late")),
-         Description = factor(Description, levels = kog2name.order)) %>% 
+         Description = factor(Description, levels = kog2name.order)) %>%
   ggplot(aes(x=species, y=Description))+
   geom_tile(aes(fill = RE-0.5))+
-  #scale_fill_gradient2(low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59", 
+  #scale_fill_gradient2(low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59",
   scale_fill_gradient2(low = "#4575B4", mid = "#FFFFBF", high = "#D73027",
                        limits = c(-0.5,0.5), n.breaks = 3, labels = c("Low","Medium","High"))+
   labs(y = "", x = "", fill = "Relative\nexpression", title = "")+
