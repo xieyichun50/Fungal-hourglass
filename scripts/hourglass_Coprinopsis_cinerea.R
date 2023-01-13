@@ -461,9 +461,25 @@ row.names(MeanREClassValues)<-c(paste0("PS",1:12),"PS1-2","PS3-12","Ratio","stde
 write.table(MeanREClassValues, paste0("Coprinopsis_cinerea.PS.RE.",ref,".txt"),
             row.names = T, quote = F, sep ="\t")
 
-##Expressed genes
+##contribution
+percentTAI<-as.data.frame(pStrata(TMM.matrix.new[,c("PS","Genes",treat.order)]))
+row.names(percentTAI)<-paste0("PS", 1:12)
+write.table(percentTAI, paste0("Coprinopsis_cinerea.PS.contribution.",ref,".txt"),
+            row.names = T, quote = F, sep ="\t")
+
+PlotContribution( ExpressionSet = TMM.matrix.new[,c("PS","Genes",treat.order)],
+                  legendName = "PS",
+                  xlab = "Ontogeny",
+                  ylab = "Transcriptome Age Index",
+                  y.ticks = 10)
+RE.bar<-PlotBarRE(TMM.matrix.new[,c("PS","Genes",treat.order)],
+                  Groups = list(group_1 = 1:2, group_2 = 3:12),
+                  ratio = T,
+                  p.adjust.method = "BH")
+
+##expressed genes
 genecount<-as.data.frame(matrix(NA, nrow = 0, ncol = 3))
-for (i in 3:ncol(TMM.matrix.new)){
+for (i in 5:11){
   genecount.sub<-as.data.frame(xtabs(~PS, TMM.matrix.new[is.na(TMM.matrix.new[i])==F,c(1,i)]))
   genecount.sub$Stage<-names(TMM.matrix.new)[i]
   genecount<-rbind(genecount,genecount.sub)
@@ -499,23 +515,6 @@ p<-genecount %>%
 p
 ggsave(paste0(species,".genecount.line.png"), 
        width = 5, height = 3, units = "in", dpi = 300)
-                  
-##contribution
-percentTAI<-as.data.frame(pStrata(TMM.matrix.new[,c("PS","Genes",treat.order)]))
-row.names(percentTAI)<-paste0("PS", 1:12)
-write.table(percentTAI, paste0("Coprinopsis_cinerea.PS.contribution.",ref,".txt"),
-            row.names = T, quote = F, sep ="\t")
-
-PlotContribution( ExpressionSet = TMM.matrix.new[,c("PS","Genes",treat.order)],
-                  legendName = "PS",
-                  xlab = "Ontogeny",
-                  ylab = "Transcriptome Age Index",
-                  y.ticks = 10)
-RE.bar<-PlotBarRE(TMM.matrix.new[,c("PS","Genes",treat.order)],
-                  Groups = list(group_1 = 1:2, group_2 = 3:12),
-                  ratio = T,
-                  p.adjust.method = "BH")
-
 
 ##########################################################
 ####TDI feature
@@ -1294,3 +1293,102 @@ ggsave(paste0(species,".EML.KOG.RE.ONTOLOGY.line.png"),
        width = 5, height = 2.5, units = "in", dpi = 300)
 f=paste0(species,".EML.KOG.RE.ONTOLOGY.line.pptx")
 topptx(p, f, width = 5, height = 2.5, units = "in")
+
+##PS function
+
+KOG.all.1<-compareCluster(Genes ~ PS, 
+                          data = genes.PS, 
+                          fun = 'enricher',
+                          TERM2GENE = GenesKOGpair.1v1,
+                          TERM2NAME = kog2name,
+                          pvalueCutoff = 1,
+                          pAdjustMethod = "BH",
+                          qvalueCutoff = 1,
+                          minGSSize = 1,
+                          maxGSSize = nrow(GenesKOGpair.1v1))
+plotin<-as.data.frame(KOG.all.1)
+plotinsep<-separate(plotin, "GeneRatio", c("Genenumerator", "Genedenominator"),sep = "/", remove = FALSE, convert = TRUE)
+plotinsep<-separate(plotinsep, "BgRatio", c("BGnumerator", "BGdenominator"),sep = "/", remove = FALSE, convert = TRUE)
+
+colnames(plotinsep)[names(plotinsep)=="ID"]<-"kogClass"
+plotinsep$PS<-paste0("PS",plotinsep$PS)
+kogbk<-data.frame(PS=sort(rep(paste0("PS",1:12),25)), 
+                  kogClass=rep(kog2name$kogClass,12),
+                  ONTOLOGY=rep(kog2name$ONTOLOGY,12),
+                  Description=rep(kog2name$kogName,12))
+
+plotdata<-merge(plotinsep, kogbk, by = c("PS","kogClass","Description"), all.y = T)
+
+plotdata$ratio=plotdata$Genenumerator/plotdata$BGnumerator
+plotdata$enrich.factor=(plotdata$Genenumerator*plotdata$BGdenominator)/(plotdata$Genedenominator*plotdata$BGnumerator)
+plotdata$Description<-paste0(plotdata$Description," [",plotdata$kogClass,"]")
+plotdata$ratio[is.na(plotdata$ratio)]<-0
+plotdata$enrich.factor[is.na(plotdata$enrich.factor)]<-1
+plotdata<-plotdata[plotdata$kogClass != "R",]
+p<-plotdata %>%
+  mutate(PS = factor(PS, levels = c(paste0("PS",1:12)))) %>% 
+  ggplot(aes(x=PS, y=Description))+
+  geom_tile(aes(fill = ratio-0.5))+
+  #scale_fill_gradient2(low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59", 
+  scale_fill_gradient2(low = "#4575B4", mid = "#FFFFBF", high = "#D73027", 
+                       limits = c(-0.5,0.5), n.breaks = 3, labels = c("Less","Medium","More"))+
+  labs(y = "", x = "", fill = "Gene ratio\n\n", title = "")+
+  theme(plot.subtitle = element_text(vjust = 1),
+        plot.caption = element_text(vjust = 1),
+        axis.text.x = element_text(size = 12, colour = "black", angle = 45, face = "italic", hjust = 1, vjust = 1),
+        axis.text.y = element_text(size = 12, colour = "black"),
+        axis.ticks = element_blank(),
+        plot.title = element_text(size = 12, hjust = 0.5),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        axis.line = element_line(size = 0.5, colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 0.5),
+        panel.background = element_rect(fill = NA),
+        panel.grid.minor = element_line(colour = "gray50", size = 0.5))+
+  facet_grid(ONTOLOGY~., scales = "free_y", space = "free")
+p
+ggsave(paste0("KOG.heatmap.png"), width = 12, height = 8, units = "in", dpi = 300)
+ggsave(paste0("KOG.heatmap.tiff"), width = 12, height = 8, units = "in", dpi = 300)
+
+##KOG by PS
+KOG.PS<-merge(unique(GenesKOGpair.1v1[,c("KS","Genes")]), genes.PS, by = "Genes", all.y = T)
+KOG.PS<-KOG.PS[is.na(KOG.PS$KS)==F,]
+KOG.PS.stat<-as.data.frame(xtabs( ~ PS+KS, KOG.PS))
+KOG.PS.stat<-merge(KOG.PS.stat, kog2name, by = "KS", all.x = T)
+KOG.PS.stat$PS<-paste0("PS", KOG.PS.stat$PS)
+kog2name$Description<-paste0(kog2name$kogName, "[",kog2name$kogClass,"]")
+kog2name.order<-kog2name$Description
+KOG.PS.stat$Description<-paste0(KOG.PS.stat$kogName, "[",KOG.PS.stat$kogClass,"]")
+p<-KOG.PS.stat %>%
+  mutate(PS = factor(PS, levels = paste0("PS", 1:12)),
+         Description = factor(Description, levels = kog2name.order)) %>%
+  ggplot(aes(x = Description, y = Freq, fill = PS))+
+  #geom_line(aes(color = PS))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_y_continuous(#limits = c(0,1.1),
+    #breaks = seq(0,1,0.2),
+    position = "left")+
+  scale_x_discrete(position = "bottom")+
+  scale_fill_manual(values = c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
+                                "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00",
+                                "#cab2d6", "#6a3d9a", "gray75", "#b15928"))+
+  labs(title = "", x = "", y = "", colour = NULL)+
+  scale_y_break(c(800, 1400))+
+  scale_y_break(c(1500, 2200))+
+  facet_grid(~ONTOLOGY, scales = "free", space = "free")+
+  theme(axis.line = element_line(linetype = "solid"),
+        axis.ticks.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(colour = "black", size = 0.5),
+        axis.text.x = element_text(size = 8, colour = "black", angle = 90, hjust = 1, vjust = 0.5),
+        axis.text.y = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = 8, hjust = 0.5, face = "plain"),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 0),
+        panel.background = element_rect(fill = NA),
+        legend.key = element_rect(fill = NA),
+        legend.background = element_rect(fill = NA),
+        legend.position = "right",
+        strip.text = element_text(size = 9))
+p
+ggsave(paste0(species,".KOGPS.genecount.png"), 
+       width = 12, height = 8, units = "in", dpi = 300)
