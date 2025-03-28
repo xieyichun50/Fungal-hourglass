@@ -1,5 +1,5 @@
 # The Phylotranscriptomic Hourglass Pattern in Fungi: An Updated Model
-Contributed by Yichun Xie, Hoi Shan Kwan, Po Lam Chan, Wen Jie Wu, Jiachi Chiou, Jinhui Chang
+Contributed by Yichun Xie, Hoi Shan Kwan, Po Lam Chan, Jinhui Chang
 
 Find the manuscript [here](https://www.biorxiv.org/content/10.1101/2022.07.14.500038v1)
 
